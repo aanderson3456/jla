@@ -33,3 +33,28 @@ Second "<" sign
   _ = 2^1 * 2^(-b)    := by rw [Real.rpow_one]
   _ = 2^(1+(-b))      := by rw [← Real.rpow_add zero_lt_two]
   _ = 2^(-(b-1))      := by ring_nf
+
+/-
+Page 8
+5th displayed equation
+Inequality
+uses the fact that p*(1-p)≤ 1/4 which we prove here:
+-/
+
+theorem bound_of_nonneg (x:ℝ) : 0 ≤ 4*x*(x-1) + 1 := calc
+  _ ≤ (2*x-1)*(2*x-1) := mul_self_nonneg _
+  _ = 4*(x*x) - 4*x + 1 := by ring
+  _ = _                 := by ring
+
+theorem numerator_bound (x:ℝ) : 4*(x*(1-x)) ≤ 1 :=
+  calc
+  _ = - (4*x*(x-1))         := by ring
+  _ = - (4*x*(x-1) + 1) + 1 := by ring
+  _ ≤ -0 + 1                := add_le_add_right (neg_le_neg (bound_of_nonneg x)) 1
+  _ = 1                     := by ring
+
+theorem le_div {a b c : ℝ} (ha: 0<a) (g: a*b ≤ c) : b ≤ c/a :=
+  ((le_div_iff' ha).mpr) g
+
+theorem the_bound (x:ℝ) : x*(1-x) ≤ 1/4 :=
+  le_div zero_lt_four (numerator_bound x)
