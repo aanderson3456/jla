@@ -1,6 +1,9 @@
 import Mathlib.Data.Real.Basic
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
+
+set_option tactic.hygienic false
+
 theorem page5_display3_equals2 (b:ℝ): 2^(b+1) * 4^(b-1) = 2^(3*b-1):=
 /-
 Formal verification of
@@ -38,23 +41,76 @@ Second "<" sign
 Page 8
 5th displayed equation
 Inequality
-uses the fact that p*(1-p)≤ 1/4 which we prove here:
+proved in paper_bound'' below
 -/
 
-theorem bound_of_nonneg (x:ℝ) : 0 ≤ 4*x*(x-1) + 1 := calc
-  _ ≤ (2*x-1)*(2*x-1) := mul_self_nonneg _
-  _ = 4*(x*x) - 4*x + 1 := by ring
+theorem bound_of_nonneg (p:ℝ) : 0 ≤ 4*p*(p-1) + 1 := calc
+  _ ≤ (2*p-1)*(2*p-1) := mul_self_nonneg _
+  _ = 4*(p*p) - 4*p + 1 := by ring
   _ = _                 := by ring
 
-theorem numerator_bound (x:ℝ) : 4*(x*(1-x)) ≤ 1 :=
+theorem numerator_bound (p:ℝ) : 4*(p*(1-p)) ≤ 1 :=
   calc
-  _ = - (4*x*(x-1))         := by ring
-  _ = - (4*x*(x-1) + 1) + 1 := by ring
-  _ ≤ -0 + 1                := add_le_add_right (neg_le_neg (bound_of_nonneg x)) 1
+  _ = - (4*p*(p-1))         := by ring
+  _ = - (4*p*(p-1) + 1) + 1 := by ring
+  _ ≤ -0 + 1                := add_le_add_right (neg_le_neg (bound_of_nonneg p)) 1
   _ = 1                     := by ring
 
 theorem le_div {a b c : ℝ} (ha: 0<a) (g: a*b ≤ c) : b ≤ c/a :=
   ((le_div_iff' ha).mpr) g
 
-theorem the_bound (x:ℝ) : x*(1-x) ≤ 1/4 :=
-  le_div zero_lt_four (numerator_bound x)
+theorem the_bound (p:ℝ) : p*(1-p) ≤ 1/4 :=
+  le_div zero_lt_four (numerator_bound p)
+
+theorem mul_self_bound {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) : p*p ≤ 1 := calc
+_ ≤ p * 1 := mul_le_mul_of_nonneg_left h1 h0
+_ ≤ 1 * 1 := mul_le_mul_of_nonneg_right h1 zero_le_one
+_ = 1     := one_mul 1
+
+
+theorem sq_bound {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) : p^2 ≤ 1 :=
+  calc
+  _ = p^(1+1)     := by ring_nf
+  _ = p^(1) * p^1   := Real.rpow_add' h0 (by linarith)
+  _ = p*p         := by rw [Real.rpow_one]
+  _ ≤ 1           := mul_self_bound h0 h1
+
+
+theorem cube_bound {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) : p^3 ≤ 1 :=
+  calc
+  _ = p^(2+1)     := by ring_nf
+  _ = p^2 * p^1   := Real.rpow_add' h0 (by linarith)
+  _ = p^2 * p     := by rw [Real.rpow_one]
+  _ ≤ 1 * p       := mul_le_mul_of_nonneg_right (sq_bound h0 h1) (h0)
+  _ = p           := one_mul _
+  _ ≤ 1           := h1
+
+
+theorem cube_bound' {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) : (1-p)^3 ≤ 1 :=
+  cube_bound (sub_nonneg.mpr h1) (sub_le_self 1 h0)
+
+theorem paper_bound {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
+  (1-p)^3 + p^3 ≤ 2 := calc
+  (1-p)^3 + p^3 ≤ (1-p)^3 + 1 := add_le_add_left  (cube_bound  h0 h1) _
+  _             ≤ 1 + 1       := add_le_add_right (cube_bound' h0 h1) _
+  _             = 2 := by ring
+
+
+theorem paper_bound' {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) : p * (1-p) * ((1-p)^3 + p^3) ≤ 1/2 :=
+calc
+_ ≤ p * (1-p) * 2 := mul_le_mul_of_nonneg_left (paper_bound h0 h1) (mul_nonneg h0 (sub_nonneg.mpr h1)) 
+_ ≤ (1/4) * 2     := mul_le_mul_of_nonneg_right (the_bound _) (by linarith)
+_ = _             := by ring
+
+theorem paper_bound'' {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
+  (1-p)^4 * p + p^4 * (1-p) ≤ 1/2 :=
+calc
+  _ = (1-p)^(3+1) * p         + p^(3+1) * (1-p)     := by ring_nf
+  _ = (1-p)^(3) * (1-p)^1 * p + (p^3 * p^1) * (1-p) := by {
+      rw [Real.rpow_add',Real.rpow_add']
+      exact h0; linarith; exact sub_nonneg.mpr h1; linarith
+      --or a one-linear: rw [Real.rpow_add' (sub_nonneg.mpr h1) (by linarith),Real.rpow_add' h0 (by linarith)]
+    }
+  _ = (1-p)^(3) * (1-p)   * p + (p^3 * p) * (1-p)   := by rw [Real.rpow_one,Real.rpow_one]
+  _ = p * (1-p) * ( (1-p)^(3) + p^3)                := by ring
+  _ ≤ _                                             := paper_bound' h0 h1
