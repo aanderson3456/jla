@@ -1,6 +1,6 @@
 import Mathlib.Data.Real.Basic
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
-
+import Mathlib.Data.Nat.Parity
 
 set_option tactic.hygienic false
 
@@ -98,7 +98,7 @@ theorem paper_bound {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
 
 theorem paper_bound' {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) : p * (1-p) * ((1-p)^3 + p^3) ≤ 1/2 :=
 calc
-_ ≤ p * (1-p) * 2 := mul_le_mul_of_nonneg_left (paper_bound h0 h1) (mul_nonneg h0 (sub_nonneg.mpr h1)) 
+_ ≤ p * (1-p) * 2 := mul_le_mul_of_nonneg_left (paper_bound h0 h1) (mul_nonneg h0 (sub_nonneg.mpr h1))
 _ ≤ (1/4) * 2     := mul_le_mul_of_nonneg_right (the_bound _) (by linarith)
 _ = _             := by ring
 
@@ -114,3 +114,42 @@ calc
   _ = (1-p)^(3) * (1-p)   * p + (p^3 * p) * (1-p)   := by rw [Real.rpow_one,Real.rpow_one]
   _ = p * (1-p) * ( (1-p)^(3) + p^3)                := by ring
   _ ≤ _                                             := paper_bound' h0 h1
+
+
+/- Bottom of page 7: -/
+/- Caution is needed since 3/2=1 and 3*(1/2)=0 over ℕ. -/
+#eval 3/2
+#eval 3*(1/2)
+
+theorem choose_two (n:ℕ) : 2 * Nat.choose n 2  = n*(n-1) := by {
+  induction n
+  rfl
+  exact calc
+  _ = 2 * (Nat.choose n_1 1 + Nat.choose n_1 2)     := rfl
+  _ = 2 * (Nat.choose n_1 1) + 2* Nat.choose n_1 2  := Nat.mul_add 2 (Nat.choose n_1 1) (Nat.choose n_1 2)
+  _ = 2 * (Nat.choose n_1 1) + (n_1*(n_1-1))        := by rw[n_ih]
+  _ = 2 * (n_1) + (n_1*(n_1-1))         := by rw[Nat.choose_one_right]
+  _ = 2 * (n_1) + (n_1*n_1 - n_1*1)       := by rw [Nat.mul_sub_left_distrib]
+  _ = 2 * (n_1) + (n_1*n_1 - n_1)       := by ring_nf
+  _ = (2 * (n_1) + (n_1*n_1)) - n_1       := (Nat.add_sub_assoc (Nat.le_mul_self n_1) _).symm
+  _ = n_1*(n_1) + 2 * (n_1) - n_1       := by ring_nf
+  _ = (n_1*(n_1) + n_1) + n_1 - n_1     := by ring_nf
+  _ = (n_1*(n_1) + n_1)                 := Nat.add_sub_cancel (n_1 * n_1 + n_1) n_1
+  _ = (n_1+1) * n_1                     := by ring
+  _ = (n_1+1) * ((n_1+1) - 1)           := rfl
+  _ = Nat.succ n_1 * (Nat.succ n_1 - 1) := by rw [Nat.succ_eq_add_one]
+}
+
+
+theorem choose_two_formula (n:ℕ) : Nat.choose n 2  = (n*(n-1))/2 := calc
+Nat.choose n 2 = Nat.choose n 2 * 2 / 2 := (Nat.mul_div_cancel _ zero_lt_two).symm
+_ = 2 * Nat.choose n 2 / 2 := by ring_nf
+_ = n*(n-1) / 2 := by rw[choose_two]
+
+theorem caution : ∃ n : ℕ, (n*(n-1))/2 ≠ n*((n-1)/2) := by {exists 2}
+
+theorem page7_bottom (n:ℕ) : Nat.choose n 2 * Nat.choose 4 2 = 3*n*(n-1) := calc
+Nat.choose n 2 * Nat.choose 4 2 = Nat.choose n 2 * 6 := rfl
+_ = 3 * (2 * Nat.choose n 2)  := by ring
+_ = 3 * (n*(n-1))             := by rw [choose_two]
+_ = _                         := by ring
