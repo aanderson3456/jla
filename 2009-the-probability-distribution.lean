@@ -148,8 +148,46 @@ _ = n*(n-1) / 2 := by rw[choose_two]
 
 theorem caution : ∃ n : ℕ, (n*(n-1))/2 ≠ n*((n-1)/2) := by {exists 2}
 
-theorem page7_bottom (n:ℕ) : Nat.choose n 2 * Nat.choose 4 2 = 3*n*(n-1) := calc
+theorem page7_bottom (n:ℕ) : Nat.choose n 2 * Nat.choose 4 2 = 3*n*(n-1) := (calc
 Nat.choose n 2 * Nat.choose 4 2 = Nat.choose n 2 * 6 := rfl
 _ = 3 * (2 * Nat.choose n 2)  := by ring
 _ = 3 * (n*(n-1))             := by rw [choose_two]
-_ = _                         := by ring
+_ = _                         := by ring)
+
+
+/-
+Page 2
+1st displayed inequality
+-/
+open Classical
+
+noncomputable def one_on (P : Prop) : ℕ := ite P 1 0
+
+theorem one_on_inequality (x a : ℕ) : a * one_on (a ≤ x) ≤ x :=
+by {
+  by_cases (a ≤ x)
+
+  have : one_on (a ≤ x) = 1 := if_pos h
+  rw [this]
+  simp
+  exact h
+
+  have : one_on (a ≤ x) = 0 := if_neg h
+  rw [this]
+  simp
+}
+
+theorem real_one_on_inequality (x a : ℝ) (g : 0 ≤ x) : a * one_on (a ≤ x) ≤ x :=
+by {
+  by_cases (a ≤ x)
+
+  have : one_on (a ≤ x) = 1 := if_pos h
+  rw [this]
+  simp
+  exact h
+
+  have : one_on (a ≤ x) = 0 := if_neg h
+  rw [this]
+  simp
+  exact g
+}
