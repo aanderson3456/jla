@@ -4,15 +4,15 @@ import Mathlib.Algebra.BigOperators.Basic
 `On factoring of unlimited integers` by KAREL HRBACEK:
  the case where each aᵢ=0.
 
-Hrbacek assumes ℓ ≥ 1 but actually Dickson's Conjecture is trivial for ℓ = 0
-so we do not rule that out.
+Dickson's Conjecture is trivial for ℓ = 0
+and we do not need Hrbacek's assumption that ℓ ≥ 1.
  -/
 
 open Finset
 def prod_f {ℓ : ℕ} (b : Fin ℓ → ℕ) : ℕ → ℕ :=
-  λ k ↦ Finset.prod (univ : Finset (Fin ℓ)) (λ i : Fin ℓ ↦ b i * k)
+  λ k ↦ Finset.prod univ (λ i : Fin ℓ ↦ b i * k)
 
-example {ℓ : ℕ} {b: Fin ℓ → ℕ} {hb : ∀ i, b i ≥ 1}
+theorem dickson_linear {ℓ : ℕ} {b: Fin ℓ → ℕ} {hb : ∀ i, b i ≥ 1}
   (hc : ¬ (∃ n, n > 1 ∧ ∀ k, n ∣ (prod_f b k))) (i : Fin ℓ) (n₀:ℕ) :
   ∃ n ≥ n₀, (b i * n).Prime := by
   by_cases h : ∀ i, b i = 1
@@ -28,15 +28,7 @@ example {ℓ : ℕ} {b: Fin ℓ → ℕ} {hb : ∀ i, b i ≥ 1}
     constructor
     . exact Nat.lt_of_le_of_ne (hb i) fun a ↦ hi (id (Eq.symm a))
     . intro k
-      let s := Finset.filter (λ x ↦ x = i)
-          (univ : (Finset (Fin ℓ)))
-
-      have hprods: (s.prod fun x ↦ b x * k) = b i * k := by
-        show (filter (λ x ↦ x = i) univ).prod (fun x ↦ b x * k) = b i *k
-        have : (filter (λ x ↦ x = i) univ) = {i} := by
-          apply ext; intro j; simp
-        rw [this]; simp
-      let Q := prod_dvd_prod_of_subset s univ
-        (λ j : Fin ℓ ↦ b j * k) (filter_subset (fun x ↦ x = i) univ)
-      rw [hprods] at Q
+      let Q := prod_dvd_prod_of_subset {i} univ
+        (λ j : Fin ℓ ↦ b j * k) (subset_univ {i})
+      rw [prod_singleton] at Q
       exact Nat.dvd_trans (Nat.dvd_mul_right (b i) k) Q
