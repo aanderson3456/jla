@@ -17,9 +17,9 @@ import Mathlib.LinearAlgebra.Matrix.PosDef
 Section 2 of Alan Dow's paper `PFA and complemented subspaces of ℓ_∞/c₀`,
 Journal of Logic and Analysis, 2016,
 starts: `Let A_n, n ∈ ℕ be a partition of ℕ into infinite sets.`
-Here we prove formally that there exists a partition of ℕ into two infinite sets.
-One could use the 2-adic valuation to extend to infinitely many sets;
-we prove that each such set Aₙ is infinite.
+Here we prove formally that there exists a partition of ℕ into infinitely many infinite sets.
+The idea is to use the 2-adic valuation.
+(We first prove it for just two sets as a warmup.)
 
 -/
 def E : Set Nat := λ k ↦ Even k
@@ -61,6 +61,24 @@ example : E ∪ O = Set.univ := by
   tauto
 
 def A : ℕ → Set ℕ := λ n ↦ λ k ↦ padicValNat 2 k = n
+
+
+example : ⋃ n : ℕ, A n = Set.univ := by
+  unfold A
+  apply Set.ext
+  intro x
+  simp
+  exists padicValNat 2 x
+
+example {m n:ℕ} (h : m ≠ n) : Disjoint (A m) (A n) := by
+  unfold A
+  refine Set.disjoint_iff_forall_ne.mpr ?_
+  intro a ha b hb
+  contrapose h
+  simp at *
+  subst h
+  rw [← ha,hb]
+
 
 example {n:ℕ} : Infinite (A n) := by
   refine Set.infinite_coe_iff.mpr ?_
