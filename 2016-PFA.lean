@@ -21,6 +21,7 @@ Here we prove formally that there exists a partition of ℕ into infinitely many
 The idea is to use the 2-adic valuation.
 (We first prove it for just two sets as a warmup.)
 
+We also introduce the ideals A⊥ and I (introduced on page 2 of the paper) and prove A⊥ ⊆ I.
 -/
 def E : Set Nat := λ k ↦ Even k
 def O : Set Nat := λ k ↦ Odd k
@@ -61,7 +62,6 @@ example : E ∪ O = Set.univ := by
   tauto
 
 def A : ℕ → Set ℕ := λ n ↦ λ k ↦ padicValNat 2 k = n
-
 
 example : ⋃ n : ℕ, A n = Set.univ := by
   unfold A
@@ -118,3 +118,19 @@ example {n:ℕ} : Infinite (A n) := by
       refine Nat.mul_le_mul ?h₁ ?h₂
       exact Nat.one_le_two_pow
       exact Nat.le_refl (2 * a + 1)
+
+def almost_disjoint (B : Set ℕ) (C : ℕ → Set ℕ) : Set ℕ :=
+λ n ↦ Finite (Set.inter (C n) B)
+
+def Abot : Set (Set ℕ) := λ B ↦ almost_disjoint B A = Set.univ
+
+def I    : Set (Set ℕ) := λ B ↦ ∃ n₀, ∀ n, n₀ ≤ n → n ∈ almost_disjoint B A
+
+example : Abot ⊆ I := by
+  unfold Abot I
+  intro C hC
+  exists 0
+  intro n _
+  unfold almost_disjoint at *
+  rw [hC]
+  trivial
