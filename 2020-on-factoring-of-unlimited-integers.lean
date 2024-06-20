@@ -5,6 +5,9 @@ import Mathlib.Algebra.BigOperators.Basic
 the case where:
 * `gcd(a,b)>1` or `b=1`
 
+n = gcd(a,b) > 1 implies n | f(k) = a+bk for all k,
+violating the main hypothesis of Dickson's conjecture.
+
 See `dickson_strong`.
 
 Dickson's Conjecture is trivial for ℓ = 0
