@@ -9,8 +9,13 @@ In `A computational aspect of the Lebesgue differentiation theorem` by NOOPUR PA
 Here we expound this by constructing the Cantor-Lebesgue measure on 2^ω using the Lebesgue measure on [0,1].
 
 [
-A related Marginis entry is that for Miyabe, Nies, Stephan: Randomness and Solovay degrees at
+Related Marginis entries: Miyabe, Nies, Stephan: Randomness and Solovay degrees at
 https://github.com/bjoernkjoshanssen/jla/blob/main/2018-miyabe-nies-stephan.lean
+(proving that the usual map from 2^omega to [0,1] is not injective)
+and
+Pauly and Fouche at
+https://github.com/bjoernkjoshanssen/jla/blob/main/2017-pauly-fouche.lean
+(constructing the Cantor-Hausdorff measure on 2^ω, which does coincide with the Cantor-Lebesgue measure)
 ]
 
  -/
