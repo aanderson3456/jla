@@ -8,7 +8,10 @@ In `A computational aspect of the Lebesgue differentiation theorem` by NOOPUR PA
 
 Here we expound this by constructing the Cantor-Lebesgue measure on 2^ω using the Lebesgue measure on [0,1].
 
-[A related Marginis entry is that for Miyabe, Nies, Stephan: Randomness and Solovay degrees]
+[
+A related Marginis entry is that for Miyabe, Nies, Stephan: Randomness and Solovay degrees at
+https://github.com/bjoernkjoshanssen/jla/blob/main/2018-miyabe-nies-stephan.lean
+]
 
  -/
 
