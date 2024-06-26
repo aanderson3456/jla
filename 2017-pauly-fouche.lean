@@ -20,7 +20,7 @@ In `theorem measure_univ_prototype` we give a prototype of the argument from com
 the Hausdorff measure of the whole space is 1.
 
 -/
-noncomputable instance  :
+noncomputable instance  myInstance :
   MetricSpace (ℕ → Bool) :=  PiNat.metricSpaceOfDiscreteUniformity (λ _ ↦ rfl)
 
 noncomputable def μ : MeasureTheory.Measure (ℕ → Bool) := MeasureTheory.Measure.hausdorffMeasure 1
@@ -264,8 +264,7 @@ lemma edist_half {b : Bool}:
                 PseudoMetricSpace.toPseudoEMetricSpace
                 PseudoMetricSpace.edist
                 MetricSpace.toPseudoMetricSpace
-                instMetricSpaceForallNatBool
-                -- this won't work in other people's setups!
+                myInstance
                 PiNat.metricSpaceOfDiscreteUniformity
                 PseudoMetricSpace.toUniformSpace
                 dist
