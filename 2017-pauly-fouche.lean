@@ -1,6 +1,6 @@
 import Mathlib.Topology.MetricSpace.PiNat
 import Mathlib.MeasureTheory.Measure.Hausdorff
-import Mathlib.Topology.MetricSpace.PseudoMetric
+import Mathlib.Topology.MetricSpace.Pseudo.Defs
 
 /-
 
@@ -264,9 +264,10 @@ lemma edist_half {b : Bool}:
                 PseudoMetricSpace.toPseudoEMetricSpace
                 PseudoMetricSpace.edist
                 MetricSpace.toPseudoMetricSpace
-                instMetricSpaceForallNatBool_myproject2
+                instMetricSpaceForallNatBool
+                -- this won't work in other people's setups!
                 PiNat.metricSpaceOfDiscreteUniformity
-                instMetricSpaceForallNatBool_myproject2.proof_1
+                PseudoMetricSpace.toUniformSpace
                 dist
                 PiNat.dist
               simp only [Set.mem_setOf_eq, iSup_le_iff]
@@ -363,20 +364,13 @@ lemma four_sets_and_disjointness
 -- is 1.
 theorem measure_univ_prototype (S T : Set (ℕ → Bool)) (h : Set.univ ⊆ S ∪ T) :
   1 ≤ EMetric.diam S + EMetric.diam T := by
-    let Q := EMetric.diam_mono h
-    rw [e_diameter_one] at Q
     by_cases hS : ∃ x y, x ∈ S ∧ y ∈ S ∧ x 0 = true ∧ y 0 = false
-    . have : EMetric.diam S = 1 := diam_one _ hS
-      rw [this]
-      simp
+    . rw [diam_one _ hS]; simp
     . by_cases hT : ∃ x y, x ∈ T ∧ y ∈ T ∧ x 0 = true ∧ y 0 = false
-      . have : EMetric.diam T = 1 := diam_one _ hT
-        rw [this]
-        simp
+      . rw [diam_one _ hT]; simp
       . have h₀: tr ∈ S ∨ tr ∈ T := by exact h trivial
         have h₁: fa ∈ S ∨ fa ∈ T := by exact h trivial
         have ht: tr ∈ S ↔ ¬ tr ∈ T := one_or_other hS hT h₀ h₁
-
         have hf: fa ∈ S ↔ ¬ fa ∈ T := by -- and the same for fa
           constructor;intro htr₀;by_contra htr₁
           have : ¬ (tr ∈ S ∨ tr ∈ T) := by
