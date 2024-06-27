@@ -17,7 +17,7 @@ The first displayed equation on page 2 suggests that
 sqrt ((x-y)^2 + (κ (x-y))^2) ≤ (1 + κ) * |x-y|
 
 We verify that formally and show (see `h₀` below) that a sharper (easy) bound exists.
-We need κ ≥ 0 but we do not need κ > 0. In fact, Wikipedia only requires κ ≥ 0.
+We need κ ≥ 0 but we do not need κ > 0. In fact, Wikipedia only requires κ ≥ 0 at https://en.wikipedia.org/wiki/Lipschitz_continuity
 
 -/
 
