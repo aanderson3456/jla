@@ -6,6 +6,8 @@ import Mathlib.Algebra.Group.TypeTags
 import Mathlib.Combinatorics.SimpleGraph.Basic
 import Mathlib.Topology.MetricSpace.Basic
 
+import Mathlib.Combinatorics.Quiver.Basic
+import Mathlib.Combinatorics.Quiver.Path
 /-
 
 Inspired by the paper
@@ -19,6 +21,8 @@ https://leanprover-community.github.io/archive/stream/217875-Is-there-code-for-X
 
 After converting that to Lean 4, we construct the Cayley graph of ℤ and give some
 computations on it.
+
+We also construct a path in this Cayley graph, using Lean's `Quiver.Path`.
 
 -/
 
@@ -98,3 +102,14 @@ example : 6 ∉ IntCayley.edges 4 5 := by
   intro hc
   have Q := hc.1
   simp at Q
+
+instance : Quiver ℤ := {
+  Hom := λ x y ↦ IntCayley.edges x y
+}
+
+def mypath : @Quiver.Path ℤ _ 0 1 := by
+  exact @Quiver.Path.cons ℤ _ 0 0 1 (Quiver.Path.nil) (by
+    show IntCayley.edges 0 1
+    use 1;unfold IntCayley cayley_graph schreier_graph
+    simp only;tauto
+  )
