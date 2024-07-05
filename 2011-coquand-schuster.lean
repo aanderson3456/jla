@@ -40,30 +40,19 @@ theorem zerolist : ∀ (σ : List (Fin 1)), σ = List.ofFn (λ i : Fin σ.length
 | [] => by simp
 | a :: y => by
   rw [zerolist y]
-  simp
+  simp only [Fin.isValue, List.ofFn_const, List.length_cons, List.length_replicate,
+    Nat.succ_eq_add_one, List.ofFn_succ, List.cons.injEq, and_true]
   exact Fin.fin_one_eq_zero a
 
 example : @wkl (Fin 1) _ := by
-  unfold wkl
   intro T hT hi
   use (λ _ ↦ 0)
   intro k
   obtain ⟨σ,hσ⟩ := hi k
-  have : σ = List.ofFn (λ i : Fin σ.length ↦ 0) := zerolist σ
   exact hT σ hσ.1 (List.ofFn (λ _ : Fin k ↦ 0)) (by
-    rw [this]
-    simp
-    unfold List.IsPrefix
+    rw [zerolist σ]
+    simp only [Fin.isValue, List.ofFn_const]
     exists List.replicate (σ.length - k) 0
-    simp
-    have : σ.length = (σ.length - k) + k := by
-      ring_nf
-      exact (Nat.sub_eq_iff_eq_add hσ.2).mp rfl
-    nth_rewrite 2 [this]
-    have : ∀ a b : ℕ, List.replicate a (0:Fin 1)  ++ List.replicate b 0 = List.replicate (a+b) 0 := by
-      intro a b
-      exact (List.replicate_add a b 0).symm
-    have U := this k (σ.length - k)
-    rw [add_comm]
-    tauto
+    nth_rewrite 2 [(Nat.sub_eq_iff_eq_add hσ.2).mp rfl]
+    rw [← List.replicate_add, add_comm]
   )
