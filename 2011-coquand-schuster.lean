@@ -6,41 +6,32 @@ The paper
 Unique paths as formal points
 Thierry Coquand, Peter Schuster
 
-mentions WKL₀. Here we state it and prove a converse; this converse does not require the property
-of being a tree.
+mentions Weak König's Lemma.
 
-It would not be too hard to prove `wkl` for `Fin 2` using the pigeonhole principle;
-instead we refer the reader to
-an equivalent result at https://github.com/bjoernkjoshanssen/jla/blob/main/2012-dorais-hirst-shafer.lean
+We (define and) prove:
 
-We do prove `wkl` for `Fin 1`, which includes a nice exercise in list induction, `zerolist`.
-
-To prove that `WKL` does not hold for `ℕ`, which is true since ℕ^ℕ is not compact, we use a more general
-definition of infiniteness of trees that does not use length.
+ - `WKL (Fin 0)` (this is vacuous).
+ - `WKL (Fin 1)`. This is computable and uses a nice exercise in list induction, `zerolist`.
+ - An equivalent, using `Classical.choice`, of `WKL (Fin 2)` at https://github.com/bjoernkjoshanssen/jla/blob/main/2012-dorais-hirst-shafer.lean
+ - `¬ WKL ℕ`.
 
 -/
 
 def tree {α : Type} (T : Set (List α)) : Prop :=
   ∀ σ ∈ T, ∀ τ, τ <+: σ → τ ∈ T
 
-def infi {α : Type} (T : Set (List α)) : Prop :=
-  ∀ n : ℕ, ∃ σ ∈ T, σ.length ≥ n
-
 def has_a_path {α : Type} (T : Set (List α)) : Prop :=
   ∃ p : ℕ → α, ∀ k, List.ofFn (λ i : Fin k ↦ p i.1) ∈ T
 
-lemma easier_than_wkl {α : Type} : ∀ T : Set (List α), has_a_path T → infi T := by
-  intro T ⟨p,h⟩ n
-  use (List.ofFn fun i : Fin n ↦ p i.1)
-  constructor
-  . exact h _
-  . simp only [List.length_ofFn, ge_iff_le, le_refl]
-
-/-- This definition only makes sense for finite α. -/
-def wkl {α : Type} [Fintype α] := ∀ T : Set (List α), tree T → infi T → has_a_path T
-
-/-- This definition makes sense in general. -/
 def WKL {α : Type} := ∀ T : Set (List α), tree T → Infinite T → has_a_path T
+
+example : @WKL (Fin 0) := by
+  intro T _ hi
+  exfalso
+  contrapose hi
+  refine not_infinite_iff_finite.mpr ?_
+  exact Subtype.finite
+
 
 example : ¬ @WKL ℕ := by
   unfold WKL
@@ -69,23 +60,67 @@ example : ¬ @WKL ℕ := by
   show ¬ [p 0,p 1].length ≤ 1
   simp
 
-theorem zerolist : ∀ (σ : List (Fin 1)), σ = List.ofFn (λ i : Fin σ.length ↦ 0)
+
+theorem zerolist : ∀ (σ : List (Fin 1)), σ = List.replicate σ.length 0
 | [] => by simp
 | a :: y => by
   rw [zerolist y]
-  simp only [Fin.isValue, List.ofFn_const, List.length_cons, List.length_replicate,
-    Nat.succ_eq_add_one, List.ofFn_succ, List.cons.injEq, and_true]
+  simp only [List.replicate, List.pure_def, List.bind_eq_bind, List.nil_bind, List.cons_ne_self]
+  rw [List.length_replicate]
+  simp
   exact Fin.fin_one_eq_zero a
 
-example : @wkl (Fin 1) _ := by
+example : @WKL (Fin 1) := by
   intro T hT hi
   use (λ _ ↦ 0)
   intro k
-  obtain ⟨σ,hσ⟩ := hi k
-  exact hT σ hσ.1 (List.ofFn (λ _ : Fin k ↦ 0)) (by
-    rw [zerolist σ]
-    simp only [Fin.isValue, List.ofFn_const]
-    exists List.replicate (σ.length - k) 0
-    nth_rewrite 2 [(Nat.sub_eq_iff_eq_add hσ.2).mp rfl]
-    rw [← List.replicate_add, add_comm]
-  )
+  have W := @not_infinite_iff_finite T
+  contrapose hi
+  rw [W]
+  exact @Finite.Set.subset (List (Fin 1))
+    {σ | ∃ i : Fin k, σ = List.ofFn (fun j : Fin i ↦ 0)} T (by
+      refine finite_iff_exists_equiv_fin.mpr ?_
+      use k
+      refine Nonempty.intro ?h.val
+      simp
+      exact {
+        toFun := λ σ ↦ ⟨σ.1.length,by
+          let ⟨q,hq⟩ := σ.2
+          rw [hq]
+          rw [List.length_replicate]
+          exact q.2
+        ⟩
+        invFun := λ i ↦ ⟨List.replicate i 0,by
+          use i
+        ⟩
+        left_inv := by
+          intro σ
+          simp
+          let Q := @zerolist σ.1
+          simp_rw [← Q]
+        right_inv := by
+          intro i
+          simp
+      }
+
+    ) (by
+      intro τ hτ
+      simp
+      use ⟨τ.length,by
+          by_contra hc
+          simp at hc
+          unfold tree at hT
+          contrapose hi
+          simp
+
+          have Q := @hT τ hτ (List.replicate k 0) (by
+            rw [zerolist τ]
+            use (List.replicate (τ.length - k) 0)
+            have : τ.length = τ.length - k + k := (Nat.sub_eq_iff_eq_add hc).mp rfl
+            nth_rewrite 2 [this]
+            rw [← List.replicate_add, add_comm]
+          )
+          exact Q
+      ⟩
+      exact zerolist τ
+    )
