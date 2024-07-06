@@ -15,6 +15,9 @@ an equivalent result at https://github.com/bjoernkjoshanssen/jla/blob/main/2012-
 
 We do prove `wkl` for `Fin 1`, which includes a nice exercise in list induction, `zerolist`.
 
+To prove that `WKL` does not hold for `ℕ`, which is true since ℕ^ℕ is not compact, we need another
+infiniteness of trees that does not use length.
+
 -/
 
 def tree {α : Type} (T : Set (List α)) : Prop :=
@@ -33,8 +36,38 @@ lemma easier_than_wkl {α : Type} : ∀ T : Set (List α), has_a_path T → infi
   . exact h _
   . simp only [List.length_ofFn, ge_iff_le, le_refl]
 
-
+/-- This definition only makes sense for finite α. -/
 def wkl {α : Type} [Fintype α] := ∀ T : Set (List α), tree T → infi T → has_a_path T
+
+/-- This definition makes sense in general. -/
+def WKL {α : Type} := ∀ T : Set (List α), tree T → Infinite T → has_a_path T
+
+example : ¬ @WKL ℕ := by
+  unfold WKL
+  push_neg
+  use (λ σ ↦ σ.length ≤ 1)
+  constructor
+  unfold tree
+  intro σ hσ
+  intro τ hτ
+  obtain ⟨u,hu⟩ := hτ
+  aesop
+  have : (τ ++ u).length ≤ 1 := hσ
+  show τ.length ≤ 1
+  calc
+    τ.length ≤ (τ ++ u).length := by apply List.IsPrefix.length_le;simp
+    _        ≤ _ := by exact hσ
+
+  constructor
+  exact @Infinite.of_surjective ({σ : List ℕ // σ.length ≤ 1}) ℕ _
+    (λ σ ↦ dite (σ.1.length = 0) (λ _ ↦ 0) (λ h ↦ σ.1.get ⟨0,Nat.zero_lt_of_ne_zero h⟩
+    )) (by intro n; use ⟨[n],by simp⟩; simp)
+  unfold has_a_path
+  push_neg
+  intro p
+  use 2
+  show ¬ [p 0,p 1].length ≤ 1
+  simp
 
 theorem zerolist : ∀ (σ : List (Fin 1)), σ = List.ofFn (λ i : Fin σ.length ↦ 0)
 | [] => by simp
