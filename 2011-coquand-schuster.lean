@@ -10,10 +10,12 @@ mentions Weak König's Lemma.
 
 We (define and) prove:
 
- - `WKL (Fin 0)` (this is vacuous).
+ - `WKL (Fin 0)` (this is vacuous for any set, not just trees).
  - `WKL (Fin 1)`. This is computable and uses a nice exercise in list induction, `zerolist`.
  - An equivalent, using `Classical.choice`, of `WKL (Fin 2)` at https://github.com/bjoernkjoshanssen/jla/blob/main/2012-dorais-hirst-shafer.lean
  - `¬ WKL ℕ`.
+
+For `Fin 1` the path is indeed (obviously) unique.
 
 -/
 
