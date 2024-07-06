@@ -15,8 +15,8 @@ an equivalent result at https://github.com/bjoernkjoshanssen/jla/blob/main/2012-
 
 We do prove `wkl` for `Fin 1`, which includes a nice exercise in list induction, `zerolist`.
 
-To prove that `WKL` does not hold for `ℕ`, which is true since ℕ^ℕ is not compact, we need another
-infiniteness of trees that does not use length.
+To prove that `WKL` does not hold for `ℕ`, which is true since ℕ^ℕ is not compact, we use a more general
+definition of infiniteness of trees that does not use length.
 
 -/
 
