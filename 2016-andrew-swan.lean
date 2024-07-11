@@ -1,15 +1,8 @@
-import Mathlib.Topology.Clopen
-import Mathlib.Data.Nat.Prime
-import Mathlib.NumberTheory.SmoothNumbers
-import Mathlib.Data.Real.Basic
-import Mathlib.LinearAlgebra.Matrix.Trace
-import Mathlib.Data.Matrix.Reflection
-import Mathlib.Tactic.NormNum.Prime
-import Mathlib.LinearAlgebra.Matrix.ZPow
-import Mathlib.Data.Fin.Basic
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.RingTheory.AdjoinRoot
-import Mathlib.LinearAlgebra.Matrix.PosDef
+import Mathlib.Init.Set
+import Mathlib.Init.Function
+import Mathlib.Data.Finite.Defs
+import Mathlib.Data.Fintype.Card
+import Mathlib.Data.Set.Finite
 
 /-
 On page 2 of the paper
@@ -18,14 +11,13 @@ by ANDREW SWAN, JLA 2016,
 Perm(𝔸) is the set of all finite permutations of 𝔸, i.e.,
 the set of permutations π such that π a = a for all but finitely many a.
 We show that Perm(𝔸) is closed under composition and contains the identity.
-
 -/
 
 def moved {A : Type} (f : A → A) : Set A := {a | f a ≠ a}
 
-def perm {A : Type} : Set (A → A) := λ f ↦ Function.Bijective f ∧ Finite (moved f)
+def perm (A : Type) : Set (A → A) := λ f ↦ Function.Bijective f ∧ Finite (moved f)
 
-theorem perm_comp {A : Type} (f g : @perm A) : (f.1 ∘ g.1) ∈ @perm A := by
+theorem perm_comp {A : Type} (f g : perm A) : (f.1 ∘ g.1) ∈ perm A := by
     unfold perm
     constructor
     let hf := f.2.1
@@ -33,7 +25,7 @@ theorem perm_comp {A : Type} (f g : @perm A) : (f.1 ∘ g.1) ∈ @perm A := by
     exact Function.Bijective.comp hf hg
     let hf := f.2.2
     let hg := g.2.2
-    let hf' : Finite ({a | f.1 (g.1 a) ≠ g.1 a}) := by
+    have hf' : Finite ({a | f.1 (g.1 a) ≠ g.1 a}) := by
       unfold moved at *
       let G : {a | f.1 (g.1 a) ≠ g.1 a} → {a | f.1 a ≠ a} := λ a ↦ ⟨g.1 a, a.2⟩
       let Q := Finite.of_injective G
@@ -48,22 +40,17 @@ theorem perm_comp {A : Type} (f g : @perm A) : (f.1 ∘ g.1) ∈ @perm A := by
       apply SetCoe.ext
       exact T
     unfold moved at *
-    have h₀: { a | (f.1 ∘ g.1) a ≠ a} ⊆  {a | g.1 a ≠ a} ∪ {a | f.1 (g.1 a) ≠ g.1 a} := by
+    have h₀: { a | (f.1 ∘ g.1) a ≠ a} ⊆ {a | g.1 a ≠ a} ∪ {a | f.1 (g.1 a) ≠ g.1 a} := by
       intro a h
       contrapose h
-      simp at *
+      simp only [ne_eq, Set.mem_union, Set.mem_setOf_eq, not_or, not_not, Function.comp_apply] at *
       rw [h.2]
       tauto
-    have h₁: ∀ S T : Set A, Finite S → Finite T → Finite (S.union T) := by
-      exact fun S T a a_1 ↦ Finite.Set.finite_union S T
-    have h₂: ∀ S T : Set A, Finite T → S ⊆ T → Finite S := by
-      exact fun S T a a_1 ↦ Finite.Set.subset T a_1
-    tauto
+    exact Finite.Set.subset _ h₀
 
-theorem id_perm {A : Type} : id ∈ @perm A := by
-    unfold perm
+theorem id_perm {A : Type} : id ∈ perm A := by
+    unfold perm moved
     constructor
     exact Function.bijective_id
-    unfold moved
-    simp
+    simp only [id_eq, ne_eq, not_true_eq_false, Set.setOf_false]
     apply Finite.of_fintype
