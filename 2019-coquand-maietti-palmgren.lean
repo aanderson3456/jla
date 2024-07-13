@@ -67,49 +67,22 @@ example ( σ τ : TopologicalSpace (Fin 1)) : σ.IsOpen = τ.IsOpen := by
     apply propext
     tauto
 
-#check (⊤ : TopologicalSpace (Fin 2)).IsOpen
-
-
--- Since the trivial topology ⊤ was hard to work with,
--- defining our own version of it:
-def mytop : TopologicalSpace (Fin 2) :=
-{
-  IsOpen := λ S ↦ S = ∅ ∨ S = Set.univ
-  isOpen_univ := Or.inr rfl
-  isOpen_inter := by
-    intro S T hS hT
-    cases hS with
-    |inl h => subst h;left;simp
-    |inr h =>
-      subst h
-      cases hT with
-      |inl h => subst h;left;simp
-      |inr h => subst h;right;simp
-  isOpen_sUnion := by
-    intro S hS
-    simp at hS
-    by_cases H : Set.univ ∈ S
-    . right;refine Set.sUnion_eq_univ_iff.mpr ?_;
-      intro a;exists Set.univ
-    . left
-      have : ∀ t ∈ S, t = ∅ := by
-        intro t ht
-        let Q := hS t ht
-        cases Q with
-        |inl h => tauto
-        |inr h => subst h;tauto
-      exact Set.sUnion_eq_empty.mpr this
-}
 
 -- There are two distinct topologies on `Fin 2`:
 example : ∃ ( σ τ : TopologicalSpace (Fin 2)), σ.IsOpen ≠ τ.IsOpen := by
   use ⊥ -- discrete topology
-  use mytop -- use ⊤ -- trivial topology
+  use ⊤ -- trivial topology
   intro hc
   have h₀: (⊥ : TopologicalSpace (Fin 2)).IsOpen {0} := trivial
-  have h₁: ¬ (mytop : TopologicalSpace (Fin 2)).IsOpen {0} := by
-    show ¬ (λ S ↦ S = ∅ ∨ S = Set.univ) {0}
+
+  have : ¬@IsOpen (Fin 2) ⊤ {0} := by
+    rw [TopologicalSpace.isOpen_top_iff]
+    simp only [Set.singleton_ne_empty, false_or]
+    intro h
+    cases h.ge (Set.mem_univ 1)
+
+  have h₁: ¬ (⊤ : TopologicalSpace (Fin 2)).IsOpen {0} := by
+    change ¬@IsOpen (Fin 2) ⊤ {0} -- thanks to Eric Wieser for this line
     intro hc
-    have h₁: (1 : Fin 2) ∉ ({0} : Set (Fin 2)) := by simp
     aesop
   aesop
