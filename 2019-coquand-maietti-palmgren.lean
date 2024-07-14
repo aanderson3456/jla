@@ -15,7 +15,8 @@ introduces Formal Topology, which is a constructive approach to pointfree topolo
 Here we instead look at topologies *with points*, over finite sets and show:
  - there is a unique topology on `Fin 0`;
  - there is a unique topology on `Fin 1`;
- - there exist two distinct topologies on `Fin 2`.
+ - there exist two distinct topologies on `Fin 2`
+ - We also construct the remaining two topologies on `Fin 2` giving a total of 4.
 
 
 -/
@@ -86,3 +87,55 @@ example : ∃ ( σ τ : TopologicalSpace (Fin 2)), σ.IsOpen ≠ τ.IsOpen := by
     intro hc
     aesop
   aesop
+
+-- Here are two more topologies on `Fin 2`.
+-- In fact a topology on `Fin 2` must contain `Set.univ` and `∅`,
+-- and then there are four possibilities depending on which of `{0}`, `{1}` are included.
+def mytop (z : Fin 2): TopologicalSpace (Fin 2) :=
+{
+  IsOpen := λ S ↦ S = ∅ ∨ S = Set.univ ∨ S = {z}
+  isOpen_univ := by tauto
+  isOpen_inter := by
+    intro S T hS hT
+    cases hS with
+    |inl h => subst h;left;simp
+    |inr h =>
+      cases h with
+      |inl h => subst h; cases hT with
+        |inl h => subst h;simp
+        |inr h => cases h with
+          |inl h => subst h;simp
+          |inr h => subst h;simp
+      |inr h => subst h;cases hT with
+        |inl h => subst h;simp
+        |inr h => cases h with
+          |inl h => subst h;simp
+          |inr h => subst h;simp
+  isOpen_sUnion := by
+    intro S hS
+    simp at hS
+    by_cases H₀ : Set.univ ∈ S
+    . right;left;refine Set.sUnion_eq_univ_iff.mpr ?_;
+      intro a;exists Set.univ
+    . by_cases H₁ : {z} ∈ S
+      . right;right;ext i;simp;
+        constructor
+        intro h;
+        obtain ⟨t,ht⟩ := h
+        let Q := hS t ht.1
+        cases Q with
+          |inl h => subst h;simp at ht
+          |inr h => cases h with
+            |inl h => subst h;tauto
+            |inr h => subst h;tauto
+        intro h
+        subst h
+        exists {i}
+      . left;ext i;simp;intro s hs;
+        let Q := hS s hs
+        cases Q with
+        |inl h => subst h;simp
+        |inr h => cases h with
+          |inl h => subst h;simp;tauto
+          |inr h => subst h;simp;tauto
+}
