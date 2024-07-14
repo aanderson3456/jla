@@ -1,6 +1,6 @@
 import Mathlib.Topology.Defs.Basic
 import Mathlib.MeasureTheory.Measure.Hausdorff
-import Mathlib.Topology.Defs.Basic
+import Mathlib.Topology.Homeomorph
 /-
 
 The paper
@@ -16,7 +16,8 @@ Here we instead look at topologies *with points*, over finite sets and show:
  - there is a unique topology on `Fin 0`;
  - there is a unique topology on `Fin 1`;
  - there exist two distinct topologies on `Fin 2`
- - We also construct the remaining two topologies on `Fin 2` giving a total of 4.
+ - We also construct the remaining two topologies on `Fin 2` giving a total of 4,
+   and show they are homeomorphic.
 
 
 -/
@@ -139,3 +140,48 @@ def mytop (z : Fin 2): TopologicalSpace (Fin 2) :=
           |inl h => subst h;simp;tauto
           |inr h => subst h;simp;tauto
 }
+
+-- We can show that the latter two topologies are homeomorphic:
+
+def myequiv := @Equiv.mk (Fin 2) (Fin 2) (λ x ↦ x + 1) ((λ x ↦ x + 1))
+  (by exact leftInverse_add_left_sub 1) (by exact leftInverse_add_left_sub 1)
+
+def myhomeo := @Homeomorph.mk (Fin 2) (Fin 2) (mytop 0) (mytop 1) myequiv (by
+  refine continuous_def.mpr ?_
+  intro S hs
+  unfold IsOpen at hs
+  have : S = ∅ ∨ S = Set.univ ∨ S = {1} := hs
+  show myequiv.toFun ⁻¹' S = ∅ ∨ myequiv.toFun ⁻¹' S = Set.univ ∨ myequiv.toFun ⁻¹' S = {0}
+  cases this with
+  |inl h => subst h;left;simp
+  |inr h => cases h with
+    |inl h => subst h;right;left;simp
+    |inr h => subst h;right;right;ext x;simp;
+              constructor
+              . intro h; unfold myequiv at h; simp at h; tauto
+              . intro h; subst h;rfl
+) (by
+  refine continuous_def.mpr ?_
+  intro S hs
+  unfold IsOpen at hs
+  have : S = ∅ ∨ S = Set.univ ∨ S = {0} := hs
+  show myequiv.toFun ⁻¹' S = ∅ ∨ myequiv.toFun ⁻¹' S = Set.univ ∨ myequiv.toFun ⁻¹' S = {1}
+  cases this with
+  |inl h => subst h;left;simp
+  |inr h => cases h with
+    |inl h => subst h;right;left;simp
+    |inr h => subst h;right;right;ext x;simp;
+              constructor
+              . intro h; unfold myequiv at h; simp at h;
+                have : x.1 = 0 ∨ x.1 = 1 := by
+                  refine Nat.le_one_iff_eq_zero_or_eq_one.mp ?_
+                  exact Fin.is_le x
+                have : x = 0 ∨ x = 1 := by
+                  cases this with
+                  | inl h => left;exact Eq.symm (Fin.eq_of_val_eq (id (Eq.symm h)))
+                  | inr h => right;exact Eq.symm (Fin.eq_of_val_eq (id (Eq.symm h)))
+                cases this with
+                | inl h₀ => subst h₀;simp at h
+                | inr h₀ => subst h₀;rfl
+              . intro h; subst h;rfl
+)
